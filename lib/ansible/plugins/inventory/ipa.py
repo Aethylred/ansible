@@ -91,6 +91,7 @@ from ansible.module_utils.six import string_types
 from ansible.module_utils._text import to_native
 from ansible.parsing.utils.addresses import parse_address
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
+from ansible.module_utils.ipa import IPAClient
 
 # Imports for this plugin
 from distutils.version import LooseVersion
@@ -114,6 +115,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipapassword = None
         self.ipaversion = '2.228'
         self.ipaconnection = None
+        self.ipahostgroup = ''
         self._hosts = set()
 
     def parse(self, inventory, loader, path, cache=True):
@@ -127,29 +129,19 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipauser = self.get_option('ipauser')
         self.ipapassword = self.get_option('ipapassword')
         self.ipaversion = str(self.get_option('ipaversion'))
+        if str(self.get_option('ipahostgroup')) != 'None':
+            self.ipahostgroup = str(self.get_option('ipahostgroup'))
 
         if self.ipahttps:
-            # Connect via HTTPS and python_freeipa
-            try:
-                from python_freeipa import Client
-                import urllib3
-                # We don't need warnings
-                urllib3.disable_warnings()
-            except ImportError:
-                sys.exit(
-                    'The ipa dynamic inventory script requires python_freeipa '
-                    'to use the FreeIPA API with HTTPS authentication'
-                )
+            # Connect via HTTPS
 
             try:
-                self.ipaconnection = Client(
-                    self.ipaserver,
-                    version=self.ipaversion,
-                    verify_ssl=False
+                self.ipaconnection = IPAClient(
+                    host=self.ipaserver
                 )
                 self.ipaconnection.login(
-                    self.ipauser,
-                    self.ipapassword
+                    username=self.ipauser,
+                    password=self.ipapassword
                 )
             except Exception as e:
                 raise AnsibleConnectionFailure(e)
@@ -206,7 +198,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for group_name in hostgroups:
                 self._parse_group(group_name, hostgroups[group_name])
         else:
-            raise AnsibleParserError("Invalid hostgrousp from FreeIPA, expected dictionary and got:\n\n%s" % to_native(hostgroups))
+            raise AnsibleParserError("Invalid hostgroup from FreeIPA, expected dictionary and got:\n\n%s" % to_native(hostgroups))
 
     def _parse_group(self, group, data):
 
@@ -239,20 +231,28 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.inventory.add_child(group, child_name)
 
     def _get_hostgroups(
-        self
+        self,
+        hostgroup=''
     ):
         inventory = {}
         hostvars = {}
         result = {}
 
         if self.ipahttps:
-            result = self.ipaconnection._request(
+            result = self.ipaconnection._post_json(
                 'hostgroup_find',
-                '',
-                {'all': True, 'raw': False}
-            )['result']
+                hostgroup,
+                {
+                    'all': True,
+                    'raw': False
+                }
+            )
+
         else:
-            result = self.ipaconnection.Command.hostgroup_find(all=True)['result']
+            if hostgroup:
+                result = self.ipaconnection.Command.hostgroup_find(hostgroup, all=True)['result']
+            else:
+                result = self.ipaconnection.Command.hostgroup_find(all=True)['result']
 
         for hostgroup in result:
             members = []
