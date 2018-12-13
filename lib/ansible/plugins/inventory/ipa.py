@@ -249,13 +249,29 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         result = {}
 
         if self.ipahttps:
-            result = self.ipaconnection._request(
-                'hostgroup_find',
-                hostgroup,
-                {'all': True, 'raw': False}
-            )['result']
+            if hostgroup:
+                result = self.ipaconnection._request(
+                    'hostgroup_find',
+                    {
+                        'cn': hostgroup,
+                        'all': True,
+                        'raw': False
+                    }
+                )['result']
+            else:
+                result = self.ipaconnection._request(
+                    'hostgroup_find',
+                    {
+                        'all': True,
+                        'raw': False
+                    }
+                )['result']
+
         else:
-            result = self.ipaconnection.Command.hostgroup_find(all=True)['result']
+            if hostgroup:
+                result = self.ipaconnection.Command.hostgroup_find(cn=hostgroup, all=True)['result']
+            else:
+                result = self.ipaconnection.Command.hostgroup_find(all=True)['result']
 
         for hostgroup in result:
             members = []
