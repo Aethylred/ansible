@@ -114,7 +114,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipapassword = None
         self.ipaversion = '2.228'
         self.ipaconnection = None
-        self.ipahostgroup = None
+        self.ipahostgroup = ''
         self._hosts = set()
 
     def parse(self, inventory, loader, path, cache=True):
@@ -203,7 +203,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             self.ipaconnection = api
 
-        hostgroups = self._get_hostgroups(self.ipahostgroup)
+        hostgroups = self._get_hostgroups(hostgroup=self.ipahostgroup)
 
         if isinstance(hostgroups, MutableMapping):
             for group_name in hostgroups:
@@ -243,31 +243,21 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _get_hostgroups(
         self,
-        hostgroup
+        hostgroup=''
     ):
         inventory = {}
         hostvars = {}
         result = {}
 
         if self.ipahttps:
-            if hostgroup:
-                result = self.ipaconnection._request(
-                    'hostgroup_find',
-                    '',
-                    {
-                        'all': True,
-                        'raw': False
-                    }
-                )['result']
-            else:
-                result = self.ipaconnection._request(
-                    'hostgroup_find',
-                    hostgroup,
-                    {
-                        'all': True,
-                        'raw': False
-                    }
-                )['result']
+            result = self.ipaconnection._request(
+                'hostgroup_find',
+                hostgroup,
+                {
+                    'all': True,
+                    'raw': False
+                }
+            )['result']
 
         else:
             if hostgroup:
