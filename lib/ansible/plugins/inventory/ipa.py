@@ -129,8 +129,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipauser = self.get_option('ipauser')
         self.ipapassword = self.get_option('ipapassword')
         self.ipaversion = str(self.get_option('ipaversion'))
-        if str(self.get_option('ipahostgroup')) != 'None':
-            self.ipahostgroup = str(self.get_option('ipahostgroup'))
 
         if self.ipahttps:
             # Connect via HTTPS
