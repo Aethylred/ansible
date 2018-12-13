@@ -253,8 +253,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if hostgroup:
                 result = self.ipaconnection._request(
                     'hostgroup_find',
+                    '',
                     {
-                        'cn': hostgroup,
                         'all': True,
                         'raw': False
                     }
@@ -262,6 +262,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             else:
                 result = self.ipaconnection._request(
                     'hostgroup_find',
+                    hostgroup,
                     {
                         'all': True,
                         'raw': False
@@ -270,7 +271,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         else:
             if hostgroup:
-                result = self.ipaconnection.Command.hostgroup_find(cn=hostgroup, all=True)['result']
+                result = self.ipaconnection.Command.hostgroup_find(hostgroup, all=True)['result']
             else:
                 result = self.ipaconnection.Command.hostgroup_find(all=True)['result']
 
