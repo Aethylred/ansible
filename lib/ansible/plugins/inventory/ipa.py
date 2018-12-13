@@ -242,7 +242,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _get_hostgroups(
         self,
-        hostgroup=None
+        hostgroup
     ):
         inventory = {}
         hostvars = {}
