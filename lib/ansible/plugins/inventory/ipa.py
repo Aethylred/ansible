@@ -241,7 +241,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.inventory.add_child(group, child_name)
 
     def _get_hostgroups(
-        self
+        self,
+        hostgroup=None
     ):
         inventory = {}
         hostvars = {}
@@ -250,7 +251,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         if self.ipahttps:
             result = self.ipaconnection._request(
                 'hostgroup_find',
-                '',
+                hostgroup,
                 {'all': True, 'raw': False}
             )['result']
         else:
