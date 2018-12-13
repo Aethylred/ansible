@@ -114,6 +114,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipapassword = None
         self.ipaversion = '2.228'
         self.ipaconnection = None
+        self.ipahostgroup = None
         self._hosts = set()
 
     def parse(self, inventory, loader, path, cache=True):
@@ -127,6 +128,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self.ipauser = self.get_option('ipauser')
         self.ipapassword = self.get_option('ipapassword')
         self.ipaversion = str(self.get_option('ipaversion'))
+        self.ipahostgroup = str(self.get_option('ipahostgroup'))
 
         if self.ipahttps:
             # Connect via HTTPS and python_freeipa
@@ -200,13 +202,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             self.ipaconnection = api
 
-        hostgroups = self._get_hostgroups()
+        hostgroups = self._get_hostgroups(self.hostgroups)
 
         if isinstance(hostgroups, MutableMapping):
             for group_name in hostgroups:
                 self._parse_group(group_name, hostgroups[group_name])
         else:
-            raise AnsibleParserError("Invalid hostgrousp from FreeIPA, expected dictionary and got:\n\n%s" % to_native(hostgroups))
+            raise AnsibleParserError("Invalid hostgroup from FreeIPA, expected dictionary and got:\n\n%s" % to_native(hostgroups))
 
     def _parse_group(self, group, data):
 
