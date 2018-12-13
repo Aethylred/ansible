@@ -202,7 +202,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             self.ipaconnection = api
 
-        hostgroups = self._get_hostgroups(self.hostgroups)
+        hostgroups = self._get_hostgroups(self.ipahostgroup)
 
         if isinstance(hostgroups, MutableMapping):
             for group_name in hostgroups:
